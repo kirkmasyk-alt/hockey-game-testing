@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICEBOUND | Fantasy Hockey</title>
+<style>
+:root {
+  --bg: #07111f;
+  --panel: #101e30;
+  --panel2: #17283d;
+  --line: #263c53;
+  --text: #f1f6ff;
+  --muted: #91a5bb;
+  --cyan: #55e4ee;
+  --blue: #4396ff;
+  --orange: #ff9d55;
+  --green: #72e0a0;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, Arial, sans-serif;
+}
+button { cursor: pointer; font: inherit; }
+.app { max-width: 1400px; margin: auto; padding: 24px; }
+header {
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 16px; flex-wrap: wrap;
+  padding-bottom: 22px; border-bottom: 1px solid var(--line);
+}
+.brand { font-size: 25px; font-weight: 900; letter-spacing: 2px; }
+.brand span { color: var(--cyan); }
+.subtitle { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.profile { background: var(--panel); border: 1px solid var(--line); padding: 10px 14px; border-radius: 12px; }
+nav { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
+nav button, .btn {
+  background: var(--panel); color: var(--muted);
+  border: 1px solid var(--line); border-radius: 9px;
+  padding: 10px 14px;
+}
+nav button.active, nav button:hover, .btn.primary {
+  background: var(--cyan); color: #07111f; border-color: var(--cyan); font-weight: 800;
+}
+h1 { font-size: clamp(26px, 4vw, 38px); margin: 8px 0; }
+h2 { font-size: 18px; margin-top: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; min-width: 0; }
+.matchup { display: flex; justify-content: space-around; align-items: center; gap: 10px; text-align: center; margin: 22px 0; }
+.team-logo { font-size: 34px; }
+.team-name { font-weight: 800; margin-top: 8px; }
+.score { font-size: 30px; font-weight: 900; }
+.tag { color: var(--cyan); font-size: 11px; letter-spacing: 1px; font-weight: 800; }
+.rink-wrap { margin-top: 18px; }
+canvas { display: block; width: 100%; height: auto; border-radius: 12px; background: #e7f4f7; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 18px; }
+.stat { padding: 15px; border-radius: 12px; background: var(--panel2); }
+.stat strong { display: block; font-size: 23px; margin: 7px 0; }
+.stat span { color: var(--muted); font-size: 12px; }
+.roster-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.roster-row:last-child { border-bottom: 0; }
+.avatar { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px; background: #233a54; font-size: 20px; }
+.player-info { flex: 1; min-width: 0; }
+.player-info strong { display: block; }
+.player-info small { color: var(--muted); }
+.points { font-weight: 900; color: var(--cyan); }
+.section { display: none; }
+.section.active { display: block; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.notice { padding: 14px; background: var(--panel2); border-radius: 10px; margin-top: 10px; line-height: 1.5; }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 30px 0 10px; }
+dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 16px; max-width: 360px; width: calc(100% - 30px); }
+dialog::backdrop { background: #000b; }
+@media(max-width:800px) {
+  .app { padding: 14px; }
+  .grid, .two-col { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3,1fr); }
+  .card { padding: 15px; }
+}
+@media(max-width:430px) {
+  nav button { padding: 9px; font-size: 12px; }
+  .stats { gap: 6px; }
+  .stat { padding: 10px; }
+  .stat strong { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="brand">ICE<span>BOUND</span> 🏒</div>
+    <div class="subtitle">FANTASY HOCKEY COMMAND CENTER</div>
+  </div>
+  <div class="profile">👤 <strong>Rookie Manager</strong></div>
+</header>
+
+<nav id="nav">
+  <button class="active" data-page="team">My Team</button>
+  <button data-page="leagues">Leagues</button>
+  <button data-page="penalty">Penalty Box</button>
+  <button data-page="news">News & Stats</button>
+  <button data-page="coach">AI Coach</button>
+  <button data-page="settings">Settings</button>
+</nav>
+
+<section class="section active" id="team">
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="tag">WEEK 04 · HEAD-TO-HEAD</div>
+        <h1>Matchup Center</h1>
+        <p class="muted">Your weekly battle for the top of the league.</p>
+        <div class="matchup">
+          <div><div class="team-logo">🐺</div><div class="team-name">Ice Wolves</div><div class="muted small">YOUR TEAM</div></div>
+          <div><div class="score">124 <span class="muted">:</span> 108</div><div class="muted small">LIVE DEMO SCORE</div></div>
+          <div><div class="team-logo">🦅</div><div class="team-name">Frost Hawks</div><div class="muted small">OPPONENT</div></div>
+        </div>
+      </div>
+
+      <div class="card rink-wrap">
+        <div class="tag">LIVE RINK · ANIMATED DEMO</div>
+        <h2 style="margin-top:8px">Your Starting Lineup</h2>
+        <canvas id="rink" width="900" height="440" aria-label="Animated fantasy hockey rink"></canvas>
+        <div class="controls">
+          <button class="btn primary" id="pause">⏸ Pause Animation</button>
+          <button class="btn" id="shuffle">🔄 Manage Lineup</button>
+        </div>
+        <p class="muted small">Tap a player on the rink to view their demo profile.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="stats">
+        <div class="stat"><span>TEAM POINTS</span><strong>124</strong><span>+12 this week</span></div>
+        <div class="stat"><span>RANK</span><strong>#3</strong><span>of 12 teams</span></div>
+        <div class="stat"><span>RECORD</span><strong>3–1</strong><span>Winning season</span></div>
+      </div>
+      <div class="card">
+        <h2>⭐ Starting Roster</h2>
+        <div id="roster"></div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <h2>📅 Next Games</h2>
+        <div class="roster-row"><div class="avatar">🏒</div><div class="player-info"><strong>Toronto vs Montreal</strong><small>Tonight · 7:00 PM</small></div></div>
+        <div class="roster-row"><div class="avatar">🏒</div><div class="player-info"><strong>Edmonton vs Calgary</strong><small>Tonight · 9:00 PM</small></div></div>
+        <p class="muted small">Sample schedule only — not live NHL data.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="leagues">
+  <div class="card">
+    <div class="tag">COMPETITION HUB</div><h1>Your Leagues</h1>
+    <p class="muted">The starting point for creating and joining fantasy competitions.</p>
+    <div class="two-col">
+      <div class="notice"><h2>🏆 Ice Wolves League</h2><p>12 teams · Head-to-head</p><button class="btn" onclick="demo('League details are a preview. League creation will be connected later.')">View League</button></div>
+      <div class="notice"><h2>➕ Create a League</h2><p>Choose your teams, draft, scoring and roster rules.</p><button class="btn primary" onclick="demo('League creation is not connected yet. This is a dashboard prototype.')">Create League</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="penalty">
+  <div class="card"><div class="tag">ROSTER MANAGEMENT</div><h1>Penalty Box</h1><p class="muted">Your hub for finding roster moves.</p>
+    <div class="two-col">
+      <div class="notice"><h2>🔍 Free Agents</h2><p>Find available players to strengthen your team.</p><button class="btn" onclick="demo('Free-agent search will be connected to the player database later.')">Browse Players</button></div>
+      <div class="notice"><h2>🔁 Trades</h2><p>Plan trades with other managers.</p><button class="btn" onclick="demo('Trading will be connected after league and roster systems are built.')">Explore Trades</button></div>
+      <div class="notice"><h2>🩹 Injuries</h2><p>Keep track of player availability.</p><button class="btn" onclick="demo('Live injury reports are not connected yet.')">Injury Report</button></div>
+      <div class="notice"><h2>🚨 Waivers</h2><p>Review potential waiver claims.</p><button class="btn" onclick="demo('Waivers are a planned feature.')">Manage Waivers</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="news">
+  <div class="card"><div class="tag">HOCKEY INTELLIGENCE</div><h1>News & Stats</h1>
+    <div class="notice"><h2>📊 Player Statistics</h2><p>Goals, assists, shots, saves and fantasy points.</p><button class="btn" onclick="demo('A real NHL statistics data source still needs to be connected.')">Explore Stats</button></div>
+    <div class="notice"><h2>📰 Hockey News</h2><p>Updates and information to help managers make decisions.</p><button class="btn" onclick="demo('A live hockey news feed is not connected yet.')">Read News</button></div>
+  </div>
+</section>
+
+<section class="section" id="coach">
+  <div class="card"><div class="tag">YOUR STRATEGY ASSISTANT</div><h1>AI Coach</h1><p class="muted">A future assistant for lineup advice, trades and matchup strategy.</p>
+    <div class="notice"><strong>What should I improve this week?</strong><p class="muted">The AI service has not been connected yet. We will add it after the core fantasy features work.</p><button class="btn primary" onclick="demo('AI Coach integration is planned. No AI API is connected in this prototype.')">Ask Coach</button></div>
+  </div>
+</section>
+
+<section class="section" id="settings">
+  <div class="card"><div class="tag">PERSONALIZATION</div><h1>Settings</h1>
+    <div class="notice"><h2>League Preferences</h2><p>Roster sizes, scoring rules, playoff format and draft type.</p><button class="btn" onclick="demo('Custom settings will be saved once accounts and league storage are connected.')">Customize</button></div>
+    <div class="notice"><h2>Account</h2><p>Account sign-in and manager profiles will be added in a later stage.</p></div>
+  </div>
+</section>
+
+<footer>ICEBOUND · FANTASY HOCKEY · EARLY PROTOTYPE<br>Demo scores, players and schedules are illustrative only.</footer>
+</div>
+
+<dialog id="playerDialog">
+  <h2 id="dialogName">Player</h2>
+  <p id="dialogDetails" class="muted"></p>
+  <button class="btn primary" onclick="document.getElementById('playerDialog').close()">Close</button>
+</dialog>
+
+<script>
+const players = [
+ {name:"Alex Frost",pos:"C",num:9,team:"blue",points:28,x:.28,y:.35},
+ {name:"Mason North",pos:"LW",num:17,team:"blue",points:22,x:.22,y:.65},
+ {name:"Evan Storm",pos:"RW",num:88,team:"blue",points:31,x:.40,y:.50},
+ {name:"Noah Ice",pos:"D",num:4,team:"blue",points:15,x:.13,y:.48},
+ {name:"Leo Winter",pos:"D",num:6,team:"blue",points:19,x:.35,y:.25},
+ {name:"Kai Glacier",pos:"G",num:30,team:"blue",points:18,x:.08,y:.50},
+ {name:"Rival Center",pos:"C",num:91,team:"orange",points:26,x:.72,y:.50},
+ {name:"Rival Wing",pos:"W",num:12,team:"orange",points:20,x:.78,y:.34},
+ {name:"Rival Defender",pos:"D",num:5,team:"orange",points:16,x:.87,y:.65},
+ {name:"Rival Goalie",pos:"G",num:31,team:"orange",points:21,x:.92,y:.50}
+];
+const roster = document.getElementById("roster");
+function renderRoster() {
+ roster.innerHTML = "";
+ players.filter(p=>p.team==="blue").forEach(p=>{
+  const row=document.createElement("div");
+  row.className="roster-row";
+  row.innerHTML=`<div class="avatar">🏒</div><div class="player-info"><strong>${p.name}</strong><small>${p.pos} · #${p.num}</small></div><div class="points">${p.points} pts</div>`;
+  roster.appendChild(row);
+ });
+}
+renderRoster();
+
+document.querySelectorAll("nav button").forEach(btn=>{
+ btn.addEventListener("click",()=>{
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(btn.dataset.page).classList.add("active");
+ });
+});
+function demo(message){ alert(message); }
+
+const canvas=document.getElementById("rink");
+const ctx=canvas.getContext("2d");
+let paused=false, frame=0, puck={x:.5,y:.5}, selectedPlayer=null;
+function roundedRect(x,y,w,h,r){
+ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.stroke();
+}
+function drawRink(){
+ const w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);
+ ctx.fillStyle="#edf7fa";ctx.fillRect(0,0,w,h);
+ ctx.strokeStyle="#b7d4df";ctx.lineWidth=5;
+ roundedRect(18,18,w-36,h-36,65);
+ ctx.strokeStyle="#e06d76";ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(w/2,22);ctx.lineTo(w/2,h-22);ctx.stroke();
+ ctx.strokeStyle="#6aa8e2";
+ ctx.beginPath();ctx.moveTo(w*.33,22);ctx.lineTo(w*.33,h-22);ctx.moveTo(w*.67,22);ctx.lineTo(w*.67,h-22);ctx.stroke();
+ ctx.strokeStyle="#d86a75";ctx.lineWidth=3;
+ ctx.beginPath();ctx.arc(w/2,h/2,75,0,Math.PI*2);ctx.stroke();
+ ctx.strokeStyle="#8bbbd0";ctx.lineWidth=3;
+ [[.25,.28],[.25,.72],[.75,.28],[.75,.72]].forEach(([x,y])=>{
+  ctx.beginPath();ctx.arc(w*x,h*y,37,0,Math.PI*2);ctx.stroke();
+ });
+ // Goals
+ ctx.strokeStyle="#e46d76";ctx.lineWidth=6;
+ ctx.strokeRect(18,h*.40,24,h*.20);
+ ctx.strokeRect(w-42,h*.40,24,h*.20);
+ // Ice markings
+ ctx.fillStyle="#b5d6e2";
+ [[.25,.28],[.25,.72],[.75,.28],[.75,.72],[.5,.5]].forEach(([x,y])=>{
+  ctx.beginPath();ctx.arc(w*x,h*y,5,0,Math.PI*2);ctx.fill();
+ });
+ players.forEach((p,i)=>{
+  const sway=paused?0:Math.sin(frame/18+i*1.7)*5;
+  const px=p.x*w,py=p.y*h+sway;
+  drawPlayer(px,py,p);
+ });
+ const bx=puck.x*w,by=puck.y*h;
+ ctx.fillStyle="#111722";ctx.beginPath();ctx.ellipse(bx,by,9,5,0,0,Math.PI*2);ctx.fill();
+ if(!paused){
+  frame++;
+  const carrier=players[2];
+  puck.x=carrier.x+.055*Math.sin(frame/20);
+  puck.y=carrier.y+.07*Math.cos(frame/16);
+ }
+}
+function drawPlayer(x,y,p){
+ const color=p.team==="blue"?"#277bd5":"#e77b36";
+ const dark=p.team==="blue"?"#144576":"#91421d";
+ // Stick
+ ctx.strokeStyle="#5e4638";ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(x+8,y+8);ctx.lineTo(x+22,y+22);ctx.lineTo(x+32,y+22);ctx.stroke();
+ // Skates
+ ctx.fillStyle="#172333";ctx.fillRect(x-13,y+18,12,5);ctx.fillRect(x+3,y+18,12,5);
+ // Pants
+ ctx.fillStyle=dark;ctx.fillRect(x-11,y+5,23,14);
+ // Pixel jersey
+ ctx.fillStyle=color;ctx.fillRect(x-13,y-12,27,21);
+ ctx.fillStyle="#fff";ctx.fillRect(x-13,y-5,27,4);
+ ctx.fillRect(x-5,y-12,5,21);
+ // Helmet
+ ctx.fillStyle="#e9f1f6";ctx.fillRect(x-8,y-23,17,11);
+ ctx.fillStyle=color;ctx.fillRect(x-8,y-23,17,4);
+ // Number
+ ctx.fillStyle="#fff";ctx.font="bold 11px monospace";ctx.textAlign="center";ctx.fillText(p.num,x,y+3);
+}
+function hitTest(e){
+ const rect=canvas.getBoundingClientRect();
+ const x=(e.clientX-rect.left)*canvas.width/rect.width;
+ const y=(e.clientY-rect.top)*canvas.height/rect.height;
+ return players.find(p=>Math.abs(p.x*canvas.width-x)<28 && Math.abs(p.y*canvas.height-y)<32);
+}
+canvas.addEventListener("click",e=>{
+ const p=hitTest(e);
+ if(p){
+  document.getElementById("dialogName").textContent=p.name;
+  document.getElementById("dialogDetails").textContent=`Position: ${p.pos} · Number: ${p.num} · Demo fantasy points: ${p.points}`;
+  document.getElementById("playerDialog").showModal();
+ }
+});
+document.getElementById("pause").addEventListener("click",()=>{
+ paused=!paused;
+ document.getElementById("pause").textContent=paused?"▶ Resume Animation":"⏸ Pause Animation";
+});
+document.getElementById("shuffle").addEventListener("click",()=>{
+ const forwards=players.filter(p=>p.team==="blue"&&["C","LW","RW"].includes(p.pos));
+ if(forwards.length>1){
+  const first=forwards[0],last=forwards[forwards.length-1];
+  [first.x,last.x]=[last.x,first.x];
+  [first.y,last.y]=[last.y,first.y];
+  [first.name,last.name]=[last.name,first.name];
+  [first.num,last.num]=[last.num,first.num];
+  [first.points,last.points]=[last.points,first.points];
+  renderRoster();
+ }
+});
+function animate(){drawRink();requestAnimationFrame(animate);}
+animate();
+</script>
+</body>
+</html>
